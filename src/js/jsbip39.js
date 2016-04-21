@@ -49,6 +49,15 @@ var Mnemonic = function(language) {
         }
     }
 
+    self.generate_from_junk = function(deck, strength) {
+        var ndHex = sjcl.codec.hex.fromBits(sjcl.hash.sha256.hash(deck)),
+            nBytes = strength / 8,
+            buffer = new Uint8Array(nBytes);
+        for (var i = 0; i < nBytes; i++)
+            buffer[i] = parseInt(ndHex.substring(i*2, (i+1)*2), 16);
+        return self.toMnemonic(buffer);
+    }
+
     self.generate = function(strength) {
         strength = strength || 128;
         var r = strength % 32;
