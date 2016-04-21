@@ -10,11 +10,13 @@
     var showAddress = true;
     var showPrivKey = true;
 
+    var junkChangeTimeoutEvent = null;
     var phraseChangeTimeoutEvent = null;
 
     var DOM = {};
     DOM.network = $(".network");
     DOM.phraseNetwork = $("#network-phrase");
+    DOM.junk = $(".junk");
     DOM.phrase = $(".phrase");
     DOM.passphrase = $(".passphrase");
     DOM.generate = $(".generate");
@@ -47,6 +49,7 @@
     function init() {
         // Events
         DOM.network.on("change", networkChanged);
+        DOM.junk.on("input", delayedJunkChanged);
         DOM.phrase.on("input", delayedPhraseChanged);
         DOM.passphrase.on("input", delayedPhraseChanged);
         DOM.generate.on("click", generateClicked);
@@ -89,6 +92,20 @@
         }
         setBip44DerivationPath();
         delayedPhraseChanged();
+    }
+
+    function delayedJunkChanged() {
+        hideValidationError();
+        if (junkChangeTimeoutEvent != null) {
+            clearTimeout(junkChangeTimeoutEvent);
+        }
+        junkChangeTimeoutEvent = setTimeout(junkChanged, 1000);
+    }
+
+    function junkChanged() {
+        var junk = DOM.junk.val().toLowerCase();
+        phrase = generatePhraseFromJunk(junk);
+        phraseChanged();
     }
 
     function delayedPhraseChanged() {
@@ -172,6 +189,14 @@
     }
 
     // Private methods
+
+    function generatePhraseFromJunk(deck) {
+        var numWords = parseInt(DOM.strength.val()),
+            strength = numWords / 3 * 32,
+            words = mnemonic.generate_from_junk(deck, strength);
+        DOM.phrase.val(words);
+        return words;
+    }
 
     function generateRandomPhrase() {
         if (!hasStrongRandom()) {
